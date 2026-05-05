@@ -1,0 +1,159 @@
+/* ── Layout ──────────────────────────────────────────── */
+.app-page {
+  min-height: 100vh;
+  background: #F7F7F8;
+}
+
+/* ── Header ──────────────────────────────────────────── */
+.app-header {
+  background: #fff;
+  border-bottom: 1px solid #E5E7EB;
+  padding: 0 24px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.app-header__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #FF6600;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.app-header__title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1A1A1A;
+  margin: 0;
+}
+
+/* ── Main content ─────────────────────────────────────── */
+.app-main {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+
+/* ── Card ────────────────────────────────────────────── */
+.app-card {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #E5E7EB;
+  padding: 24px 28px;
+  margin-bottom: 16px;
+}
+
+/* ── Error banner ────────────────────────────────────── */
+.app-error {
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  color: #DC2626;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+/* ── Price card content ──────────────────────────────── */
+.stock-skeleton {
+  background: #F3F4F6;
+  border-radius: 8px;
+  height: 48px;
+  width: 160px;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.stock-symbol {
+  font-size: 14px;
+  font-weight: 600;
+  color: #6B7280;
+  margin-bottom: 6px;
+}
+
+.stock-price {
+  font-size: 40px;
+  font-weight: 700;
+  color: #1A1A1A;
+  line-height: 1.1;
+  letter-spacing: -0.5px;
+}
+
+.stock-price__currency {
+  font-size: 22px;
+  font-weight: 400;
+  color: #6B7280;
+  margin-left: 2px;
+}
+
+.stock-meta {
+  font-size: 12px;
+  color: #9CA3AF;
+  margin-top: 12px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.stock-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+
+.stock-badge--alphavantage {
+  background: #FFF3E0;
+  color: #E65100;
+}
+
+.stock-badge--yahoo {
+  background: #F3F4F6;
+  color: #6B7280;
+}
+
+/* ── Card label ──────────────────────────────────────── */
+.app-card__label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6B7280;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 4px;
+}
+
+/* ── Live button ─────────────────────────────────────── */
+.live-btn {
+  margin-top: 20px;
+  padding: 10px 20px;
+  background: #FF6600;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.live-btn:hover:not(:disabled) {
+  background: #E55A00;
+}
+
+.live-btn:disabled {
+  background: #E5E7EB;
+  color: #9CA3AF;
+  cursor: not-allowed;
+}
+
+
+

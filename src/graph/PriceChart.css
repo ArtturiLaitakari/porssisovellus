@@ -1,0 +1,70 @@
+/* ── Container ───────────────────────────────────────── */
+.chart-root {
+  margin-top: 16px;
+}
+
+/* ── Range selector ──────────────────────────────────── */
+.chart-ranges {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+
+.chart-range-btn {
+  padding: 6px 14px;
+  background: transparent;
+  color: #6B7280;
+  border: 1px solid #E5E7EB;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.chart-range-btn:hover:not(:disabled) {
+  border-color: #9CA3AF;
+  color: #1A1A1A;
+}
+
+.chart-range-btn--active {
+  background: #1A1A1A;
+  color: #fff;
+  border-color: #1A1A1A;
+}
+
+.chart-range-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* ── Loading placeholder ─────────────────────────────── */
+.chart-loading {
+  height: 280px;
+  background: #F9FAFB;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9CA3AF;
+  font-size: 14px;
+}
+
+/* ── Mock data warning ───────────────────────────────── */
+.chart-mock-warning {
+  color: #B45309;
+  background: #FFFBEB;
+  border: 1px solid #FDE68A;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  margin: 0 0 8px;
+  display: inline-block;
+}
+
+/* ── Chart wrapper ───────────────────────────────────── */
+.chart-area {
+  width: 100%;
+  height: 280px;
+}
