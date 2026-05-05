@@ -1,8 +1,7 @@
-export { ALPHA_SYMBOL, YAHOO_SYMBOL } from './symbols'
+export { YAHOO_SYMBOL } from './symbols'
 export type { StockPrice } from './symbols'
 export { fetchFromYahoo, fetchYahooChart } from './yahoo'
 export type { ChartPoint, ChartResult } from './yahoo'
-export { fetchFromAlpha } from './alpha'
 export { readCache, writeCache, readChartCache, writeChartCache } from './cache'
 export { generateMockChart } from './mockData'
 

@@ -2,7 +2,6 @@ import { useCallback, useState, useEffect, useRef } from 'react'
 import {
   YAHOO_SYMBOL,
   HELSINKI_STOCKS,
-  fetchFromAlpha,
   fetchFinancialMetrics,
   readCache,
   writeCache,
@@ -50,9 +49,8 @@ function deColor(v: string | null | undefined): string {
   return 'metric__value--red'
 }
 
-function nordnetUrls(symbol: string, name: string | null | undefined): { short: string; long: string } {
+function nordnetUrl(symbol: string, name: string | null | undefined): string {
   const ticker = symbol.replace('.HE', '').toLowerCase()
-  const short = `https://www.nordnet.fi/osakkeet/kurssit/${ticker}-xhel`
   const resolvedName = name ?? HELSINKI_STOCKS.find(s => s.symbol === symbol)?.name
   const nameSlug = resolvedName
     ? resolvedName
@@ -64,10 +62,7 @@ function nordnetUrls(symbol: string, name: string | null | undefined): { short: 
         .replace(/-+/g, '-')
         .replace(/^-|-$/g, '')
     : ticker
-  const long = nameSlug !== ticker
-    ? `https://www.nordnet.fi/osakkeet/kurssit/${nameSlug}-${ticker}-xhel`
-    : `https://www.nordnet.fi/osakkeet/kurssit/${ticker}-xhel`
-  return { short, long }
+  return `https://www.nordnet.fi/osakkeet/kurssit/${nameSlug}-${ticker}-xhel`
 }
 
 function App() {
@@ -79,7 +74,6 @@ function App() {
   
   const [stockData, setStockData] = useState<StockPrice | null>(() => readCache(selectedSymbol))
   const [loading, setLoading] = useState(() => readCache(selectedSymbol) === null)
-  const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [fromCache, setFromCache] = useState(() => readCache(selectedSymbol) !== null)
   const [isCurrentFavorite, setIsCurrentFavorite] = useState(() => isFavorite(selectedSymbol))
@@ -138,34 +132,10 @@ function App() {
 
   // PriceChart kutsuu tätä kun se saa oikeaa dataa (verkosta tai chart-cachesta)
   const handlePriceLoaded = useCallback((data: StockPrice) => {
-    setStockData((prev) => {
-      if (prev?.source === 'alphavantage') return prev
-      writeCache(selectedSymbol, data)
-      return data
-    })
+    writeCache(selectedSymbol, data)
+    setStockData(data)
     setFromCache(false)
     setLoading(false)
-  }, [selectedSymbol])
-
-  const fetchLive = useCallback(async () => {
-    const API_KEY = import.meta.env.VITE_ALPHAVANTAGE_API_KEY
-    if (!API_KEY) {
-      setError('Missing VITE_ALPHAVANTAGE_API_KEY in .env.local')
-      return
-    }
-    setRefreshing(true)
-    setError(null)
-    try {
-      const data = await fetchFromAlpha(API_KEY)
-      setStockData(data)
-      setFromCache(false)
-      writeCache(selectedSymbol, data)
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err)
-      setError(msg)
-    } finally {
-      setRefreshing(false)
-    }
   }, [selectedSymbol])
 
   useEffect(() => {
@@ -246,18 +216,11 @@ function App() {
                   </div>
                   <div className="stock-meta">
                     <span className={`stock-badge stock-badge--${stockData.source}`}>
-                      {stockData.source === 'alphavantage' ? 'Alpha Vantage · live' : 'Yahoo Finance '}
+                      Yahoo Finance
                     </span>
                     {fromCache && <span>välimuistista</span>}
                     <span>Päivitetty {formatTime(stockData.fetchedAt)}</span>
                   </div>
-                  <button
-                    className="button"
-                    onClick={fetchLive}
-                    disabled={refreshing}
-                  >
-                    {refreshing ? 'Haetaan…' : 'Päivitä'}
-                  </button>
                   <button
                     className={`button ${isCurrentFavorite ? 'button--favorite-active' : ''}`}
                     onClick={handleToggleFavorite}
@@ -266,15 +229,7 @@ function App() {
                     {isCurrentFavorite ? '★' : '☆'}{' '}
                     {isCurrentFavorite ? 'Suosikki' : 'Lisää suosikiksi'}
                   </button>
-                  {(() => {
-                    const urls = nordnetUrls(selectedSymbol, fundamentals?.name)
-                    return (
-                      <>
-                        <a className="button" href={urls.long}  target="_blank" rel="noopener noreferrer">Kauppaan →</a>
-                        <a className="button" href={urls.short} target="_blank" rel="noopener noreferrer">Vara</a>
-                      </>
-                    )
-                  })()}
+                  <a className="button" href={nordnetUrl(selectedSymbol, fundamentals?.name)} target="_blank" rel="noopener noreferrer">Kauppaan →</a>
                 </>
               ) : null}
             </div>

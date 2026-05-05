@@ -112,11 +112,6 @@
   border-radius: 20px;
 }
 
-.stock-badge--alphavantage {
-  background: #FFF3E0;
-  color: #E65100;
-}
-
 .stock-badge--yahoo {
   background: #F3F4F6;
   color: #6B7280;

@@ -1,79 +1,80 @@
 # Pörssisovellus
 
-React-pohjainen sovellus osakkeiden hakuun ja hintojen seurantaan. Käyttää Alpha Vantage + Yahoo Finance APIt.
+Helsingin pörssin osakkeiden seurantasovellus. Live-osoite: **https://artturilaitakari.github.io/porssisovellus/**
 
 ## Ominaisuudet
 
-- **Osakehaku**: Hae osakkeita hakusanalla
-- **Hintakaaviot**: Reaaliaikaiset hinnat + historiakaaviot  
-- **Suosikit**: Tallenna usein seurattavat osakkeet
-- **Cache**: Välimuisti nopeuttaa hakuja
-- **Duaalilähde**: Alpha Vantage + Yahoo Finance backup
+- **Osakehaku** — hae Helsingin pörssin osakkeita nimellä tai tickerillä
+- **Hintakaavio** — historiakaavio useilla aikaväleillä (1pv – 5v)
+- **Tunnusluvut** — P/E, EV/EBITDA, D/E värikoodattuna
+- **Overview** — laajemmat tiedot: kate, velat, ROE, henkilöstö, kuvaus
+- **Suosikit** — tallenna seurattavat osakkeet selaimeen
+- **Nordnet-linkki** — suora linkki osakkeen kauppasivulle
+- **Cache** — same-day välimuisti, nollautuu automaattisesti puolenyön jälkeen
 
 ## Teknologia
 
-- React 19 + TypeScript
-- Vite bundler
-- Recharts graafit
-- Express proxy server
-- Axios HTTP client
+- React 19 + TypeScript + Vite
+- Recharts (kaaviot)
+- Express proxy (Yahoo Finance, port 3001)
+- localStorage cache
 
-## Käynnistys
+## Kehitysympäristö
 
 ```bash
-# Asenna riippuvuudet
 npm install
 
-# Käynnistä dev + proxy
+# Käynnistä frontend (5173) + proxy (3001) yhdellä komennolla
 npm run dev
-
-# Vain proxy
-npm run proxy
-
-# Tuotantoversio
-npm run build
-npm run preview
 ```
 
-## API-avaimet
+Luo `.env.local`:
 
-Luo `user-config.sh`:
+```env
+VITE_ALPHAVANTAGE_API_KEY=your-key-here
+```
+
+Alpha Vantage -avain (ilmainen): https://www.alphavantage.co/support/#api-key  
+Avain tarvitaan vain "Päivitä"-nappiin (live-hinta).
+
+## Tuotantobuild
 
 ```bash
-export ALPHAVANTAGE_API_KEY="your-api-key"
+npm run build   # tuottaa dist/
+npm run preview # esikatsele dist/ paikallisesti
 ```
 
-Alpha Vantage key: https://www.alphavantage.co/support/#api-key
+## GitHub Pages -deploy
 
-## Toiminta
+Push `main`-branchiin käynnistää automaattisen deployn (`.github/workflows/deploy.yml`).
 
-1. Haku käyttää Alpha Vantage search API
-2. Hinnat haetaan Alpha Vantage (primary) + Yahoo Finance (fallback)
-3. Cache tallentaa haetut tiedot
-4. Suosikit localStorage
-5. Proxy server CORS bypass + API key hide
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Tarvittavat GitHub-asetukset:
+- **Settings → Pages → Source**: GitHub Actions
+- **Settings → Variables**: `VITE_API_BASE_URL` = proxy-serverin URL (esim. Railway/Render)
+- **Settings → Secrets**: `VITE_ALPHAVANTAGE_API_KEY`
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+> Huom: Express-proxy täytyy deployata erikseen (Railway, Render tms.) — GitHub Pages tukee vain staattisia tiedostoja.
+
+## Arkkitehtuuri
+
 ```
+src/
+  App.tsx              # pääkomponentti, tila, logiikka
+  api/
+    yahoo.ts           # kurssihistoria + hinnat (proxyn kautta)
+    fundamentals.ts    # tunnusluvut + yritystiedot (proxyn kautta)
+    alpha.ts           # live-hinta (Alpha Vantage, suoraan)
+    cache.ts           # localStorage-apufunktiot
+    favorites.ts       # suosikit
+    helsinkiStocks.ts  # staattinen lista HEL-osakkeista
+  graph/
+    PriceChart.tsx     # Recharts-kaavio
+  search/
+    StockSearch.tsx    # hakukenttä
+  components/
+    OverviewModal.tsx  # tunnusluku-modal
+
+server/
+  proxy.ts             # Express: Yahoo Finance -proxy
+```
+

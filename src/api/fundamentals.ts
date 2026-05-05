@@ -3,7 +3,7 @@ import axios from 'axios'
 export interface FinancialMetrics {
   symbol: string
   fetchedAt: number
-  source: 'alphavantage' | 'yahoo'
+  source: 'yahoo'
   // Perustiedot
   name: string | null
   sector: string | null
