@@ -19,6 +19,21 @@ function fmtPct(n: number | null): string {
   return `${(n * 100).toFixed(1)} %`
 }
 
+function fmtDate(ts: number | null): string {
+  if (ts == null) return '--'
+  return new Date(ts).toLocaleDateString('fi-FI', { day: 'numeric', month: 'numeric', year: 'numeric' })
+}
+
+function getDividendInfo(exDividendDate: number | null, dividendDate: number | null): { label: string; value: string } | null {
+  if (dividendDate) {
+    return { label: 'Viimeisin osinko', value: fmtDate(dividendDate) }
+  }
+  if (exDividendDate) {
+    return { label: 'Irtoamispäivä', value: fmtDate(exDividendDate) }
+  }
+  return null
+}
+
 function fmtNum(n: string | number | null): string {
   if (n == null) return '--'
   return String(n)
@@ -80,6 +95,15 @@ export function OverviewModal({ fundamentals: f, onClose }: Props) {
             <div className="modal__rows">
               <div className="modal__row"><span>Velkaantumisaste (D/E)</span><span>{fmtNum(f.debtEquity)}</span></div>
               <div className="modal__row"><span>Current Ratio</span><span>{fmtNum(f.currentRatio)}</span></div>
+              {(() => {
+                const dividendInfo = getDividendInfo(f.exDividendDate, f.dividendDate)
+                return dividendInfo ? (
+                  <div className="modal__row">
+                    <span>{dividendInfo.label}</span>
+                    <span>{dividendInfo.value}</span>
+                  </div>
+                ) : null
+              })()}
             </div>
           </div>
 

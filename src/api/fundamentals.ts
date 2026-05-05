@@ -22,6 +22,8 @@ export interface FinancialMetrics {
   returnOnEquity: number | null
   currentRatio: number | null
   dividendYield: number | null
+  exDividendDate: number | null
+  dividendDate: number | null
 }
 
 export async function fetchFinancialMetrics(symbol: string): Promise<FinancialMetrics> {
@@ -56,6 +58,8 @@ async function fetchFromYahoo(symbol: string): Promise<FinancialMetrics> {
     returnOnEquity: data.returnOnEquity ?? null,
     currentRatio: data.currentRatio ?? null,
     dividendYield: data.dividendYield ?? null,
+    exDividendDate: data.exDividendDate ?? null,
+    dividendDate: data.dividendDate ?? null,
     source: 'yahoo',
     fetchedAt: Date.now(),
   }

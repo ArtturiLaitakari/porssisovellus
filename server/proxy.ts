@@ -218,6 +218,15 @@ app.get('/api/fundamentals/:symbol', async (req, res) => {
 
         const toNum = (v: unknown) => (v != null && !isNaN(Number(v)) ? Number(v) : null)
         const toStr = (v: unknown) => (v != null && String(v) !== 'undefined' ? String(v) : null)
+        const toTs  = (v: unknown) => {
+          if (v instanceof Date) return v.getTime()
+          if (typeof v === 'string') {
+            const date = new Date(v)
+            return isNaN(date.getTime()) ? null : date.getTime()
+          }
+          return null
+        }
+        
         const mapped = {
           symbol,
           name: toStr(price?.longName) ?? toStr(price?.shortName),
@@ -236,6 +245,8 @@ app.get('/api/fundamentals/:symbol', async (req, res) => {
           returnOnEquity: toNum(financialData?.returnOnEquity),
           currentRatio: toNum(financialData?.currentRatio),
           dividendYield: toNum(summaryDetail?.dividendYield),
+          exDividendDate: toTs(summaryDetail?.exDividendDate),
+          dividendDate: toTs(keyStats?.lastDividendDate),
           source: 'yahoo'
         }
         return mapped

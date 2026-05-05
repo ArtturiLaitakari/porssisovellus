@@ -49,6 +49,25 @@ function deColor(v: string | null | undefined): string {
   return 'metric__value--red'
 }
 
+function getDividendInfo(exDividendDate: number | null, dividendDate: number | null): { label: string; value: string } | null {
+  const formatDate = (ts: number | null) => ts ? new Date(ts).toLocaleDateString('fi-FI', { day: 'numeric', month: 'numeric', year: 'numeric' }) : null
+  
+  const lastDividend = dividendDate ? formatDate(dividendDate) : null
+  const exDate = exDividendDate ? formatDate(exDividendDate) : null
+  
+  // Prioriteetti: viimeisin osinko ensisijaisesti
+  if (lastDividend) {
+    return { label: 'Viimeisin osinko', value: lastDividend }
+  }
+  
+  // Jos ei viimeistä osinkoa, näytä irtoamispäivä
+  if (exDate) {
+    return { label: 'Irtoamispäivä', value: exDate }
+  }
+  
+  return null
+}
+
 function nordnetUrl(symbol: string, name: string | null | undefined): string {
   const ticker = symbol.replace('.HE', '').toLowerCase()
   const resolvedName = name ?? HELSINKI_STOCKS.find(s => s.symbol === symbol)?.name
@@ -147,10 +166,10 @@ function App() {
 
   const handleToggleFavorite = useCallback(() => {
     if (stockData) {
-      const newIsFavorite = toggleFavorite(stockData.symbol, stockData.symbol)
+      const newIsFavorite = toggleFavorite(stockData.symbol, fundamentals?.name || stockData.symbol)
       setIsCurrentFavorite(newIsFavorite)
     }
-  }, [stockData])
+  }, [stockData, fundamentals?.name])
 
   const handleFavoritesClick = useCallback(() => {
     setShowFavoritesDropdown(prev => !prev)
@@ -209,7 +228,9 @@ function App() {
                 <div className="stock-skeleton" />
               ) : stockData ? (
                 <>
-                  <div className="stock-symbol">{stockData.symbol} · {stockData.exchange}</div>
+                  <div className="stock-symbol">
+                    {fundamentals?.name || stockData.symbol} · {stockData.exchange}
+                  </div>
                   <div className="stock-price">
                     {stockData.price}
                     <span className="stock-price__currency">€</span>
@@ -258,6 +279,17 @@ function App() {
                     {loadingFundamentals ? '…' : fundamentals?.debtEquity ?? '--'}
                   </div>
                 </div>
+                {(() => {
+                  const dividendInfo = getDividendInfo(fundamentals?.exDividendDate ?? null, fundamentals?.dividendDate ?? null)
+                  return dividendInfo ? (
+                    <div className="metric">
+                      <div className="metric__label">{dividendInfo.label}</div>
+                      <div className="metric__value">
+                        {dividendInfo.value}
+                      </div>
+                    </div>
+                  ) : null
+                })()}
               </div>
               {fundamentals && (
                 <button
