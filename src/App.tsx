@@ -52,17 +52,17 @@ function deColor(v: string | null | undefined): string {
 function getDividendInfo(exDividendDate: number | null, dividendDate: number | null): { label: string; value: string } | null {
   const formatDate = (ts: number | null) => ts ? new Date(ts).toLocaleDateString('fi-FI', { day: 'numeric', month: 'numeric', year: 'numeric' }) : null
   
-  const lastDividend = dividendDate ? formatDate(dividendDate) : null
   const exDate = exDividendDate ? formatDate(exDividendDate) : null
+  const lastDividend = dividendDate ? formatDate(dividendDate) : null
   
-  // Prioriteetti: viimeisin osinko ensisijaisesti
-  if (lastDividend) {
-    return { label: 'Viimeisin osinko', value: lastDividend }
-  }
-  
-  // Jos ei viimeistä osinkoa, näytä irtoamispäivä
+  // Prioriteetti: irtoamispäivä ensisijaisesti
   if (exDate) {
     return { label: 'Irtoamispäivä', value: exDate }
+  }
+  
+  // Jos ei irtoamispäivää, näytä viimeisin osinko
+  if (lastDividend) {
+    return { label: 'Viimeisin osinko', value: lastDividend }
   }
   
   return null
