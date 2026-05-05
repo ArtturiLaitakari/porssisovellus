@@ -23,6 +23,33 @@ function formatTime(ts: number): string {
   return new Date(ts).toLocaleTimeString('fi-FI')
 }
 
+function peColor(v: string | null | undefined): string {
+  const n = parseFloat(v ?? '')
+  if (isNaN(n)) return ''
+  if (n < 12) return 'metric__value--green'
+  if (n < 20) return 'metric__value--yellow'
+  if (n < 35) return 'metric__value--orange'
+  return 'metric__value--red'
+}
+
+function evEbitdaColor(v: string | null | undefined): string {
+  const n = parseFloat(v ?? '')
+  if (isNaN(n)) return ''
+  if (n < 8) return 'metric__value--green'
+  if (n < 14) return 'metric__value--yellow'
+  if (n < 20) return 'metric__value--orange'
+  return 'metric__value--red'
+}
+
+function deColor(v: string | null | undefined): string {
+  const n = parseFloat(v ?? '')
+  if (isNaN(n)) return ''
+  if (n < 0.5) return 'metric__value--green'
+  if (n < 1.5) return 'metric__value--yellow'
+  if (n < 2.5) return 'metric__value--orange'
+  return 'metric__value--red'
+}
+
 function nordnetUrls(symbol: string, name: string | null | undefined): { short: string; long: string } {
   const ticker = symbol.replace('.HE', '').toLowerCase()
   const short = `https://www.nordnet.fi/osakkeet/kurssit/${ticker}-xhel`
@@ -260,19 +287,19 @@ function App() {
               <div className="financial-metrics">
                 <div className="metric">
                   <div className="metric__label">P/E</div>
-                  <div className="metric__value">
+                  <div className={`metric__value ${peColor(fundamentals?.peRatio)}`}>
                     {loadingFundamentals ? '…' : fundamentals?.peRatio ?? '--'}
                   </div>
                 </div>
                 <div className="metric">
                   <div className="metric__label">EV/EBITDA</div>
-                  <div className="metric__value">
+                  <div className={`metric__value ${evEbitdaColor(fundamentals?.evEbitda)}`}>
                     {loadingFundamentals ? '…' : fundamentals?.evEbitda ?? '--'}
                   </div>
                 </div>
                 <div className="metric">
                   <div className="metric__label">D/E</div>
-                  <div className="metric__value">
+                  <div className={`metric__value ${deColor(fundamentals?.debtEquity)}`}>
                     {loadingFundamentals ? '…' : fundamentals?.debtEquity ?? '--'}
                   </div>
                 </div>

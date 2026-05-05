@@ -344,5 +344,10 @@
   color: #1A1A1A;
 }
 
+.metric__value--green  { background: #D1FAE5; color: #065F46; border-radius: 4px; padding: 1px 5px; }
+.metric__value--yellow { background: #FEF9C3; color: #713F12; border-radius: 4px; padding: 1px 5px; }
+.metric__value--orange { background: #FFEDD5; color: #9A3412; border-radius: 4px; padding: 1px 5px; }
+.metric__value--red    { background: #FEE2E2; color: #991B1B; border-radius: 4px; padding: 1px 5px; }
+
 
 
