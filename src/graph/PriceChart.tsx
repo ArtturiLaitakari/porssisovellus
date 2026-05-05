@@ -46,6 +46,7 @@ export function PriceChart({ symbol, onPriceLoaded }: Props) {
 
   useEffect(() => {
     cancelRef.current = false
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true)
     setIsMock(false)
 
@@ -99,7 +100,7 @@ export function PriceChart({ symbol, onPriceLoaded }: Props) {
     return () => {
       cancelRef.current = true
     }
-  }, [symbol, range])
+  }, [symbol, range, onPriceLoaded])
 
   const xFormatter = (ts: number) => {
     const d = new Date(ts)

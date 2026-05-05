@@ -12,16 +12,11 @@ export function StockSearch({ onSelect, placeholder = "Hae osakkeita..." }: Prop
   const [suggestions, setSuggestions] = useState<StockSuggestion[]>([])
   const [loading, setLoading] = useState(false)
   const [showDropdown, setShowDropdown] = useState(false)
-  const [favoriteSymbols, setFavoriteSymbols] = useState<Set<string>>(new Set())
+  const [favoriteSymbols, setFavoriteSymbols] = useState<Set<string>>(() => getFavoriteSymbols())
   
   const inputRef = useRef<HTMLInputElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
-  const debounceRef = useRef<number>()
-
-  // Load favorites on mount
-  useEffect(() => {
-    setFavoriteSymbols(getFavoriteSymbols())
-  }, [])
+  const debounceRef = useRef<number>(undefined)
 
   // Debounced search
   useEffect(() => {

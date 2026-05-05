@@ -1,4 +1,4 @@
-import { HELSINKI_STOCKS, type HelsinkiStock } from './helsinkiStocks'
+import { HELSINKI_STOCKS } from './helsinkiStocks'
 
 export interface StockSuggestion {
   symbol: string
