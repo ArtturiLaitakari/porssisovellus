@@ -30,14 +30,13 @@ export async function fetchFinancialMetrics(symbol: string): Promise<FinancialMe
 }
 
 async function fetchFromYahoo(symbol: string): Promise<FinancialMetrics> {
-  const response = await axios.get(`http://localhost:3001/api/fundamentals/${symbol}`)
+  const response = await axios.get(`/api/fundamentals/${symbol}`)
   
   if (!response.data) {
     throw new Error('Yahoo Finance: tunnuslukuja ei saatavilla')
   }
   
   const data = response.data
-  console.log(`[fundamentals] ${symbol} raw response:`, data)
   
   return {
     symbol: data.symbol,

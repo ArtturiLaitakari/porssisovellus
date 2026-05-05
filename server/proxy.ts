@@ -1,5 +1,6 @@
 import express from 'express'
 import YahooFinance from 'yahoo-finance2'
+import path from 'path'
 
 // yahoo-finance2 hoitaa crumb-autentikaation automaattisesti
 const yf = new YahooFinance({ suppressNotices: ['yahooSurvey', 'ripHistorical'] })
@@ -15,12 +16,14 @@ function rangeToPeriod1(range: string): string {
 }
 
 const app = express()
-const PORT = 3001
+const PORT = parseInt(process.env.PORT ?? '3001', 10)
 
 // CORS — salli vain kehitysserverin origin
 app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5173')
-  res.setHeader('Access-Control-Allow-Methods', 'GET')
+  if (process.env.NODE_ENV !== 'production') {
+    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5173')
+    res.setHeader('Access-Control-Allow-Methods', 'GET')
+  }
   next()
 })
 
@@ -235,14 +238,6 @@ app.get('/api/fundamentals/:symbol', async (req, res) => {
           dividendYield: toNum(summaryDetail?.dividendYield),
           source: 'yahoo'
         }
-        console.log(`[fundamentals] ${symbol} raw modules:`, {
-          keyStats: { trailingPE: keyStats?.trailingPE, forwardPE: keyStats?.forwardPE, enterpriseToEbitda: keyStats?.enterpriseToEbitda },
-          financialData: { debtToEquity: financialData?.debtToEquity, totalRevenue: financialData?.totalRevenue, grossMargins: financialData?.grossMargins, operatingMargins: financialData?.operatingMargins, returnOnEquity: financialData?.returnOnEquity, currentRatio: financialData?.currentRatio },
-          summaryDetail: { marketCap: summaryDetail?.marketCap, dividendYield: summaryDetail?.dividendYield },
-          profile: { sector: profile?.sector, industry: profile?.industry, employees: profile?.fullTimeEmployees },
-          price: { longName: price?.longName, shortName: price?.shortName, marketCap: price?.marketCap }
-        })
-        console.log(`[fundamentals] ${symbol} mapped:`, mapped)
         return mapped
       })
     
@@ -264,6 +259,15 @@ app.get('/api/fundamentals/:symbol', async (req, res) => {
     res.status(502).json({ error: msg })
   }
 })
+
+// Tuotannossa: palvele React-buildi (/dist) ja SPA-fallback
+if (process.env.NODE_ENV === 'production') {
+  const distPath = path.join(process.cwd(), 'dist')
+  app.use(express.static(distPath))
+  app.get('*', (_req, res) => {
+    res.sendFile(path.join(distPath, 'index.html'))
+  })
+}
 
 app.listen(PORT, () => {
   console.log(`[proxy] running on http://localhost:${PORT}`)

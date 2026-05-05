@@ -48,7 +48,7 @@ export async function searchStocks(query: string, options?: SearchOptions): Prom
   
   // For longer queries, also search via network
   try {
-    const response = await fetch(`http://localhost:3001/api/search?q=${encodeURIComponent(query)}`)
+    const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`)
     
     if (!response.ok) {
       console.warn('Search API failed, using static results only')

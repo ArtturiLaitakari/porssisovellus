@@ -7,6 +7,7 @@
     "dev": "concurrently -n vite,proxy -c cyan,yellow \"vite\" \"tsx server/proxy.ts\"",
     "proxy": "tsx server/proxy.ts",
     "build": "tsc -b && vite build",
+    "start": "NODE_ENV=production tsx server/proxy.ts",
     "lint": "eslint .",
     "preview": "vite preview"
   },
