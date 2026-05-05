@@ -32,9 +32,18 @@ export function StockSearch({ onSelect, placeholder = "Hae osakkeita..." }: Prop
       
       setLoading(true)
       try {
-        const results = await searchStocks(query)
+        const results = await searchStocks(query, {
+          // Show static results immediately while loading network
+          onProgress: (staticResults) => {
+            const resultsWithFavorites = staticResults.map(suggestion => ({
+              ...suggestion,
+              isFavorite: favoriteSymbols.has(suggestion.symbol)
+            }))
+            setSuggestions(resultsWithFavorites)
+          }
+        })
         
-        // Mark favorites in results
+        // Final results (network or fallback static)
         const resultsWithFavorites = results.map(suggestion => ({
           ...suggestion,
           isFavorite: favoriteSymbols.has(suggestion.symbol)

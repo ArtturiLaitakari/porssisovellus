@@ -11,7 +11,16 @@ export async function fetchFromAlpha(apiKey: string): Promise<StockPrice> {
     throw new Error(`Alpha Vantage rate limit: ${data.Note || data.Information}`)
   }
   const quote = data?.['Global Quote']
-  if (!quote || !quote['05. price']) {
+  if (!quote) {
+    throw new Error(`Alpha Vantage unexpected response: ${JSON.stringify(data)}`)
+  }
+  
+  // Check if quota is exceeded (empty Global Quote object)
+  if (Object.keys(quote).length === 0) {
+    throw new Error('Alpha Vantage kiintiösi tuli täyteen tältä päivältä. Yritä myöhemmin uudelleen.')
+  }
+  
+  if (!quote['05. price']) {
     throw new Error(`Alpha Vantage unexpected response: ${JSON.stringify(data)}`)
   }
   return {

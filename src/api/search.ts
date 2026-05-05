@@ -7,8 +7,12 @@ export interface StockSuggestion {
   isFavorite?: boolean
 }
 
+export interface SearchOptions {
+  onProgress?: (suggestions: StockSuggestion[]) => void
+}
+
 // Search stocks with client-side filtering + network search
-export async function searchStocks(query: string): Promise<StockSuggestion[]> {
+export async function searchStocks(query: string, options?: SearchOptions): Promise<StockSuggestion[]> {
   const trimmedQuery = query.trim().toLowerCase()
   
   if (trimmedQuery.length === 0) {
@@ -37,6 +41,11 @@ export async function searchStocks(query: string): Promise<StockSuggestion[]> {
     return staticMatches
   }
   
+  // Immediately show static results while loading network
+  if (options?.onProgress && staticMatches.length > 0) {
+    options.onProgress(staticMatches)
+  }
+  
   // For longer queries, also search via network
   try {
     const response = await fetch(`http://localhost:3001/api/search?q=${encodeURIComponent(query)}`)
@@ -49,14 +58,13 @@ export async function searchStocks(query: string): Promise<StockSuggestion[]> {
     const data = await response.json()
     const networkMatches = data.suggestions || []
     
-    // Combine and deduplicate results (network results take precedence)
-    const networkSymbols = new Set(networkMatches.map((s: StockSuggestion) => s.symbol))
-    const combinedResults = [
-      ...networkMatches,
-      ...staticMatches.filter(s => !networkSymbols.has(s.symbol))
-    ]
+    // Network results replace static when available and non-empty
+    if (networkMatches.length > 0) {
+      return networkMatches
+    }
     
-    return combinedResults
+    // Fallback to static matches if network returns empty
+    return staticMatches
   } catch (error) {
     console.warn('Search API error, using static results only:', error)
     return staticMatches

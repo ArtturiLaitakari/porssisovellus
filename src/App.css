@@ -29,6 +29,7 @@
   font-weight: 700;
   color: #1A1A1A;
   margin: 0;
+  flex-grow: 1;
 }
 
 /* ── Main content ─────────────────────────────────────── */
@@ -131,9 +132,10 @@
   margin-bottom: 4px;
 }
 
-/* ── Live button ─────────────────────────────────────── */
-.live-btn {
+/* ── Buttons ─────────────────────────────────────────── */
+.button {
   margin-top: 20px;
+  margin-right: 12px;
   padding: 10px 20px;
   background: #FF6600;
   color: #fff;
@@ -142,17 +144,204 @@
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: all 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 42px;
+  line-height: 1;
+  box-sizing: border-box;
+  text-decoration: none;
+  vertical-align: top;
 }
 
-.live-btn:hover:not(:disabled) {
+.button:hover:not(:disabled) {
   background: #E55A00;
 }
 
-.live-btn:disabled {
-  background: #E5E7EB;
-  color: #9CA3AF;
+.button:disabled {
+  opacity: 0.6;
   cursor: not-allowed;
+}
+
+.button--favorite-active {
+  background: #FEF3C7;
+  color: #D97706;
+  border: 1px solid #F59E0B;
+}
+
+.button--favorite-active:hover {
+  background: #FDE68A;
+  border-color: #D97706;
+}
+
+.button--small {
+  margin-top: 0;
+  margin-right: 0;
+  padding: 6px 12px;
+  background: #fff;
+  color: #FF6600;
+  border: 1px solid #FF6600;
+  font-size: 12px;
+  min-height: auto;
+}
+
+.button--small:hover {
+  background: #FF6600;
+  color: #fff;
+}
+
+.button--overview {
+  margin-top: 16px;
+  width: 100%;
+  justify-content: center;
+}
+
+.button--nordnet {
+  background: #fff;
+  color: #1A1A1A;
+  border: 1px solid #E5E7EB;
+  text-decoration: none;
+}
+
+.button--nordnet:hover {
+  background: #F9FAFB;
+  border-color: #9CA3AF;
+}
+
+.link-button {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #FF6600;
+  text-decoration: none;
+  gap: 4px;
+  transition: color 0.15s;
+}
+
+.link-button:hover {
+  color: #E55A00;
+  text-decoration: underline;
+}
+  text-decoration: none;
+}
+
+.button--nordnet:hover {
+  background: #F9FAFB;
+  border-color: #9CA3AF;
+}
+
+/* ── Favorites dropdown ──────────────────────────────── */
+.favorites-dropdown {
+  position: relative;
+}
+
+.favorites-dropdown__content {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: #fff;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  width: 320px;
+  max-height: 400px;
+  overflow: visible;
+  z-index: 1000;
+  margin-top: 4px;
+}
+
+.favorites-dropdown__empty {
+  padding: 16px;
+  text-align: center;
+  color: #6B7280;
+  font-size: 14px;
+}
+
+.favorites-dropdown__item {
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  transition: background 0.15s;
+  text-align: left;
+}
+
+.favorites-dropdown__item:hover {
+  background: #F9FAFB;
+}
+
+.favorites-dropdown__item:first-child {
+  border-radius: 8px 8px 0 0;
+}
+
+.favorites-dropdown__item:last-child {
+  border-radius: 0 0 8px 8px;
+}
+
+.favorites-dropdown__symbol {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1A1A1A;
+}
+
+.favorites-dropdown__name {
+  font-size: 12px;
+  color: #6B7280;
+}
+
+/* ── Financial metrics ───────────────────────────────── */
+.stock-card__layout {
+  display: flex;
+  gap: 32px;
+  align-items: flex-start;
+}
+
+.stock-card__main {
+  flex: 1;
+  min-width: 0;
+}
+
+.stock-card__metrics {
+  flex-shrink: 0;
+  min-width: 180px;
+  border-left: 1px solid #E5E7EB;
+  padding-left: 32px;
+}
+
+.financial-metrics {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.metric {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.metric__label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6B7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.metric__value {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1A1A1A;
 }
 
 

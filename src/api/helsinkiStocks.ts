@@ -41,4 +41,5 @@ export const HELSINKI_STOCKS: HelsinkiStock[] = [
   { symbol: 'CAP1V.HE', name: 'CapMan Corporation' },
   { symbol: 'BOREO.HE', name: 'Boreo Corporation' },
   { symbol: 'NANOL.HE', name: 'Nanoform Finland Corporation' },
+  { symbol: 'REMEDY.HE', name: 'Remedy Entertainment Corporation' },
 ]

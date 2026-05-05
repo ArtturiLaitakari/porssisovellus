@@ -6,6 +6,10 @@ export { fetchFromAlpha } from './alpha'
 export { readCache, writeCache, readChartCache, writeChartCache } from './cache'
 export { generateMockChart } from './mockData'
 
+// Fundamentals
+export { fetchFinancialMetrics, readFundamentalsCache, writeFundamentalsCache } from './fundamentals'
+export type { FinancialMetrics } from './fundamentals'
+
 // Search and favorites
 export { searchStocks } from './search'
 export type { StockSuggestion } from './search'

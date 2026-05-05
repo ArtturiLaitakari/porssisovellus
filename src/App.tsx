@@ -1,18 +1,46 @@
-import { useCallback, useState, useEffect } from 'react'
+import { useCallback, useState, useEffect, useRef } from 'react'
 import {
   YAHOO_SYMBOL,
+  HELSINKI_STOCKS,
   fetchFromAlpha,
+  fetchFinancialMetrics,
   readCache,
   writeCache,
+  readFundamentalsCache,
+  writeFundamentalsCache,
   getFavorites,
+  isFavorite,
+  toggleFavorite,
   type StockPrice,
+  type FinancialMetrics,
 } from './api'
 import { PriceChart } from './graph'
 import { StockSearch } from './search'
+import { OverviewModal } from './components/OverviewModal'
 import './App.css'
 
 function formatTime(ts: number): string {
   return new Date(ts).toLocaleTimeString('fi-FI')
+}
+
+function nordnetUrls(symbol: string, name: string | null | undefined): { short: string; long: string } {
+  const ticker = symbol.replace('.HE', '').toLowerCase()
+  const short = `https://www.nordnet.fi/osakkeet/kurssit/${ticker}-xhel`
+  const resolvedName = name ?? HELSINKI_STOCKS.find(s => s.symbol === symbol)?.name
+  const nameSlug = resolvedName
+    ? resolvedName
+        .toLowerCase()
+        .replace(/\b(corporation|corp|oyj|plc|ltd|group|ab|oy)\b/g, '')
+        .trim()
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9-]/g, '')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '')
+    : ticker
+  const long = nameSlug !== ticker
+    ? `https://www.nordnet.fi/osakkeet/kurssit/${nameSlug}-${ticker}-xhel`
+    : `https://www.nordnet.fi/osakkeet/kurssit/${ticker}-xhel`
+  return { short, long }
 }
 
 function App() {
@@ -27,23 +55,63 @@ function App() {
   const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [fromCache, setFromCache] = useState(() => readCache(selectedSymbol) !== null)
+  const [isCurrentFavorite, setIsCurrentFavorite] = useState(() => isFavorite(selectedSymbol))
+  const [showFavoritesDropdown, setShowFavoritesDropdown] = useState(false)
+  const [fundamentals, setFundamentals] = useState<FinancialMetrics | null>(() => readFundamentalsCache(selectedSymbol))
+  const [loadingFundamentals, setLoadingFundamentals] = useState(() => readFundamentalsCache(selectedSymbol) === null)
+  const [showOverview, setShowOverview] = useState(false)
+  const favoritesDropdownRef = useRef<HTMLDivElement>(null)
+  const initialFetchDone = useRef(false)
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (favoritesDropdownRef.current && !favoritesDropdownRef.current.contains(event.target as Node)) {
+        setShowFavoritesDropdown(false)
+      }
+    }
+
+    if (showFavoritesDropdown) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showFavoritesDropdown])
+
+  const fetchFundamentals = useCallback(async (symbol: string) => {
+    try {
+      const data = await fetchFinancialMetrics(symbol)
+      setFundamentals(data)
+      writeFundamentalsCache(symbol, data)
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
+      console.warn('Fundamentals fetch failed:', msg)
+    } finally {
+      setLoadingFundamentals(false)
+    }
+  }, [])
 
   // Handle stock selection from search
-  const handleSelect = useCallback((symbol: string, name: string) => {
-    setSelectedSymbol(symbol)
+  const handleSelect = useCallback((symbol: string) => {    setSelectedSymbol(symbol)
     
     // Reset state for new symbol
     const cachedData = readCache(symbol)
+    const cachedFundamentals = readFundamentalsCache(symbol)
     setStockData(cachedData)
     setLoading(cachedData === null)
     setFromCache(cachedData !== null)
     setError(null)
-  }, [])
+    setIsCurrentFavorite(isFavorite(symbol))
+    setFundamentals(cachedFundamentals)
+    setLoadingFundamentals(cachedFundamentals === null)
+    if (!cachedFundamentals) void fetchFundamentals(symbol)
+  }, [fetchFundamentals])
 
   // PriceChart kutsuu tätä kun se saa oikeaa dataa (verkosta tai chart-cachesta)
   const handlePriceLoaded = useCallback((data: StockPrice) => {
     setStockData((prev) => {
-      // Päivitä vain jos ei ole tuoreempaa alphavantage-dataa tai hinta muuttui
       if (prev?.source === 'alphavantage') return prev
       writeCache(selectedSymbol, data)
       return data
@@ -73,11 +141,60 @@ function App() {
     }
   }, [selectedSymbol])
 
+  useEffect(() => {
+    if (!initialFetchDone.current && !readFundamentalsCache(selectedSymbol)) {
+      initialFetchDone.current = true
+      void fetchFundamentals(selectedSymbol)
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleToggleFavorite = useCallback(() => {
+    if (stockData) {
+      const newIsFavorite = toggleFavorite(stockData.symbol, stockData.symbol)
+      setIsCurrentFavorite(newIsFavorite)
+    }
+  }, [stockData])
+
+  const handleFavoritesClick = useCallback(() => {
+    setShowFavoritesDropdown(prev => !prev)
+  }, [])
+
+  const handleFavoriteSelect = useCallback((symbol: string) => {
+    handleSelect(symbol)
+    setShowFavoritesDropdown(false)
+  }, [handleSelect])
+
   return (
     <div className="app-page">
       <header className="app-header">
         <span className="app-header__dot" />
         <h1 className="app-header__title">Pörssisovellus</h1>
+        <div className="favorites-dropdown" ref={favoritesDropdownRef}>
+          <button 
+            className="button button--small" 
+            onClick={handleFavoritesClick}
+          >
+            Suosikit
+          </button>
+          {showFavoritesDropdown && (
+            <div className="favorites-dropdown__content">
+              {getFavorites().length === 0 ? (
+                <div className="favorites-dropdown__empty">Ei suosikkeja</div>
+              ) : (
+                getFavorites().map((favorite) => (
+                  <button
+                    key={favorite.symbol}
+                    className="favorites-dropdown__item"
+                    onClick={() => handleFavoriteSelect(favorite.symbol)}
+                  >
+                    <span className="favorites-dropdown__symbol">{favorite.symbol}</span>
+                    <span className="favorites-dropdown__name">{favorite.name}</span>
+                  </button>
+                ))
+              )}
+            </div>
+          )}
+        </div>
       </header>
 
       {/* Stock search */}
@@ -86,36 +203,90 @@ function App() {
       <main className="app-main">
         {error && <div className="app-error">{error}</div>}
 
-        {/* Price card */}
-        <div className="app-card">
-          {loading ? (
-            <div className="stock-skeleton" />
-          ) : stockData ? (
-            <>
-              <div className="stock-symbol">{stockData.symbol} · {stockData.exchange}</div>
-              <div className="stock-price">
-                {stockData.price}
-                <span className="stock-price__currency">€</span>
+        {/* Price + metrics card */}
+        <div className="app-card stock-card">
+          <div className="stock-card__layout">
+            {/* Left: price info */}
+            <div className="stock-card__main">
+              {loading ? (
+                <div className="stock-skeleton" />
+              ) : stockData ? (
+                <>
+                  <div className="stock-symbol">{stockData.symbol} · {stockData.exchange}</div>
+                  <div className="stock-price">
+                    {stockData.price}
+                    <span className="stock-price__currency">€</span>
+                  </div>
+                  <div className="stock-meta">
+                    <span className={`stock-badge stock-badge--${stockData.source}`}>
+                      {stockData.source === 'alphavantage' ? 'Alpha Vantage · live' : 'Yahoo Finance '}
+                    </span>
+                    {fromCache && <span>välimuistista</span>}
+                    <span>Päivitetty {formatTime(stockData.fetchedAt)}</span>
+                  </div>
+                  <button
+                    className="button"
+                    onClick={fetchLive}
+                    disabled={refreshing}
+                  >
+                    {refreshing ? 'Haetaan…' : 'Päivitä'}
+                  </button>
+                  <button
+                    className={`button ${isCurrentFavorite ? 'button--favorite-active' : ''}`}
+                    onClick={handleToggleFavorite}
+                    title={isCurrentFavorite ? 'Poista suosikeista' : 'Lisää suosikkeihin'}
+                  >
+                    {isCurrentFavorite ? '★' : '☆'}{' '}
+                    {isCurrentFavorite ? 'Suosikki' : 'Lisää suosikiksi'}
+                  </button>
+                  {(() => {
+                    const urls = nordnetUrls(selectedSymbol, fundamentals?.name)
+                    return (
+                      <>
+                        <a className="button" href={urls.long}  target="_blank" rel="noopener noreferrer">Kauppaan →</a>
+                        <a className="button" href={urls.short} target="_blank" rel="noopener noreferrer">Vara</a>
+                      </>
+                    )
+                  })()}
+                </>
+              ) : null}
+            </div>
+
+            {/* Right: financial metrics */}
+            <div className="stock-card__metrics">
+              <div className="app-card__label">
+                Tunnusluvut
               </div>
-              <div className="stock-meta">
-                <span className={`stock-badge stock-badge--${stockData.source}`}>
-                  {stockData.source === 'alphavantage' ? 'Alpha Vantage · live' : 'Yahoo Finance · ≈15 min viive'}
-                </span>
-                {fromCache && <span>välimuistista</span>}
-                <span>Päivitetty {formatTime(stockData.fetchedAt)}</span>
+              <div className="financial-metrics">
+                <div className="metric">
+                  <div className="metric__label">P/E</div>
+                  <div className="metric__value">
+                    {loadingFundamentals ? '…' : fundamentals?.peRatio ?? '--'}
+                  </div>
+                </div>
+                <div className="metric">
+                  <div className="metric__label">EV/EBITDA</div>
+                  <div className="metric__value">
+                    {loadingFundamentals ? '…' : fundamentals?.evEbitda ?? '--'}
+                  </div>
+                </div>
+                <div className="metric">
+                  <div className="metric__label">D/E</div>
+                  <div className="metric__value">
+                    {loadingFundamentals ? '…' : fundamentals?.debtEquity ?? '--'}
+                  </div>
+                </div>
               </div>
-              {/* Only show live button for Nokia (Alpha Vantage API limitation) */}
-              {selectedSymbol === 'NOKIA.HE' && (
+              {fundamentals && (
                 <button
-                  className="live-btn"
-                  onClick={fetchLive}
-                  disabled={refreshing}
+                  className="button button--small button--overview"
+                  onClick={() => setShowOverview(true)}
                 >
-                  {refreshing ? 'Haetaan…' : 'Hae live-hinta'}
+                  Overview
                 </button>
               )}
-            </>
-          ) : null}
+            </div>
+          </div>
         </div>
 
         {/* Chart card — näytetään aina, ei odoteta hintadataa */}
@@ -124,6 +295,10 @@ function App() {
           <PriceChart symbol={selectedSymbol} onPriceLoaded={handlePriceLoaded} />
         </div>
       </main>
+
+      {showOverview && fundamentals && (
+        <OverviewModal fundamentals={fundamentals} onClose={() => setShowOverview(false)} />
+      )}
     </div>
   )
 }

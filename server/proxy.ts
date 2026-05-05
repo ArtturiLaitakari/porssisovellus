@@ -17,6 +17,13 @@ function rangeToPeriod1(range: string): string {
 const app = express()
 const PORT = 3001
 
+// CORS — salli vain kehitysserverin origin
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5173')
+  res.setHeader('Access-Control-Allow-Methods', 'GET')
+  next()
+})
+
 // Sallitaan vain odotettavat ticker-merkit (kirjaimet, numerot, piste, väliviiva)
 const SYMBOL_RE = /^[A-Z0-9.-]{1,20}$/i
 
@@ -168,6 +175,93 @@ app.get('/api/search', async (req, res) => {
     const msg = err instanceof Error ? err.message : String(err)
     console.error(`[proxy] search:${trimmedQuery} ->`, msg)
     res.status(502).json({ error: msg, suggestions: [] })
+  }
+})
+
+// Fundamentals endpoint for company overview data
+app.get('/api/fundamentals/:symbol', async (req, res) => {
+  const { symbol } = req.params
+  
+  if (!SYMBOL_RE.test(symbol)) {
+    res.status(400).json({ error: 'Invalid symbol' })
+    return
+  }
+  
+  const cacheKey = `fundamentals:${symbol}`
+  const fundamentalsTTL = 24 * 60 * 60 * 1000 // 24 hours
+  
+  // Check cache first
+  const hit = cache.get(cacheKey)
+  if (hit && hit.expiresAt > Date.now()) {
+    res.setHeader('Cache-Control', `public, max-age=${Math.floor(fundamentalsTTL / 1000)}`)
+    res.setHeader('X-Cache', 'HIT')
+    res.json(hit.data)
+    return
+  }
+  
+  // Check in-flight requests
+  let fundamentalsReq$ = inFlight.get(cacheKey)
+  if (!fundamentalsReq$) {
+    fundamentalsReq$ = yf
+      .quoteSummary(symbol, {
+        modules: ['defaultKeyStatistics', 'financialData', 'summaryDetail', 'assetProfile', 'price']
+      })
+      .then((result) => {
+        const keyStats = result.defaultKeyStatistics
+        const financialData = result.financialData
+        const summaryDetail = result.summaryDetail
+        const profile = result.assetProfile
+        const price = result.price
+
+        const toNum = (v: unknown) => (v != null && !isNaN(Number(v)) ? Number(v) : null)
+        const toStr = (v: unknown) => (v != null && String(v) !== 'undefined' ? String(v) : null)
+        const mapped = {
+          symbol,
+          name: toStr(price?.longName) ?? toStr(price?.shortName),
+          sector: toStr(profile?.sector),
+          industry: toStr(profile?.industry),
+          description: toStr(profile?.longBusinessSummary),
+          employees: toNum(profile?.fullTimeEmployees),
+          website: toStr(profile?.website),
+          peRatio: toNum(keyStats?.trailingPE) ?? toNum(keyStats?.forwardPE),
+          evEbitda: toNum(keyStats?.enterpriseToEbitda),
+          debtEquity: toNum(financialData?.debtToEquity),
+          marketCap: toNum(summaryDetail?.marketCap) ?? toNum(price?.marketCap),
+          revenue: toNum(financialData?.totalRevenue),
+          grossMargin: toNum(financialData?.grossMargins),
+          operatingMargin: toNum(financialData?.operatingMargins),
+          returnOnEquity: toNum(financialData?.returnOnEquity),
+          currentRatio: toNum(financialData?.currentRatio),
+          dividendYield: toNum(summaryDetail?.dividendYield),
+          source: 'yahoo'
+        }
+        console.log(`[fundamentals] ${symbol} raw modules:`, {
+          keyStats: { trailingPE: keyStats?.trailingPE, forwardPE: keyStats?.forwardPE, enterpriseToEbitda: keyStats?.enterpriseToEbitda },
+          financialData: { debtToEquity: financialData?.debtToEquity, totalRevenue: financialData?.totalRevenue, grossMargins: financialData?.grossMargins, operatingMargins: financialData?.operatingMargins, returnOnEquity: financialData?.returnOnEquity, currentRatio: financialData?.currentRatio },
+          summaryDetail: { marketCap: summaryDetail?.marketCap, dividendYield: summaryDetail?.dividendYield },
+          profile: { sector: profile?.sector, industry: profile?.industry, employees: profile?.fullTimeEmployees },
+          price: { longName: price?.longName, shortName: price?.shortName, marketCap: price?.marketCap }
+        })
+        console.log(`[fundamentals] ${symbol} mapped:`, mapped)
+        return mapped
+      })
+    
+    inFlight.set(cacheKey, fundamentalsReq$)
+    fundamentalsReq$
+      .then((data) => cache.set(cacheKey, { data, expiresAt: Date.now() + fundamentalsTTL }))
+      .catch(() => {})
+      .finally(() => inFlight.delete(cacheKey))
+  }
+  
+  try {
+    const data = await fundamentalsReq$
+    res.setHeader('Cache-Control', `public, max-age=${Math.floor(fundamentalsTTL / 1000)}`)
+    res.setHeader('X-Cache', 'MISS')
+    res.json(data)
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err)
+    console.error(`[proxy] fundamentals:${symbol} ->`, msg)
+    res.status(502).json({ error: msg })
   }
 })
 

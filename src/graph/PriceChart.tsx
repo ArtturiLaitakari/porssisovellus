@@ -142,7 +142,7 @@ export function PriceChart({ symbol, onPriceLoaded }: Props) {
 
       {!loading && data.length > 0 && (
         <div className="chart-area">
-          <ResponsiveContainer>
+          <ResponsiveContainer width="100%" height={280} minWidth={0}>
             <LineChart data={data} margin={{ top: 10, right: 8, left: 0, bottom: 0 }}>
               <XAxis
                 dataKey="t"
