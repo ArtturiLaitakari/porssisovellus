@@ -203,8 +203,7 @@ function App() {
                     className="favorites-dropdown__item"
                     onClick={() => handleFavoriteSelect(favorite.symbol)}
                   >
-                    <span className="favorites-dropdown__symbol">{favorite.symbol}</span>
-                    <span className="favorites-dropdown__name">{favorite.name}</span>
+                    {favorite.name}
                   </button>
                 ))
               )}

@@ -255,16 +255,15 @@
 
 .favorites-dropdown__item {
   width: 100%;
-  padding: 12px 16px;
+  padding: 8px 16px;
   border: none;
   background: none;
   cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
-  transition: background 0.15s;
+  display: block;
   text-align: left;
+  transition: background 0.15s;
+  color: #1A1A1A;
+  font-size: 14px;
 }
 
 .favorites-dropdown__item:hover {
@@ -277,17 +276,6 @@
 
 .favorites-dropdown__item:last-child {
   border-radius: 0 0 8px 8px;
-}
-
-.favorites-dropdown__symbol {
-  font-size: 14px;
-  font-weight: 600;
-  color: #1A1A1A;
-}
-
-.favorites-dropdown__name {
-  font-size: 12px;
-  color: #6B7280;
 }
 
 /* ── Financial metrics ───────────────────────────────── */
