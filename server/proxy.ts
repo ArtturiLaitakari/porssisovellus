@@ -19,7 +19,7 @@ const app = express()
 const PORT = parseInt(process.env.PORT ?? '3001', 10)
 
 // CORS — salli vain kehitysserverin origin
-app.use((req, res, next) => {
+app.use((_req, res, next) => {
   if (process.env.NODE_ENV !== 'production') {
     res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5173')
     res.setHeader('Access-Control-Allow-Methods', 'GET')
