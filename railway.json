@@ -6,7 +6,7 @@
   },
   "deploy": {
     "startCommand": "npm start",
-    "healthcheckPath": "/api/stock/NOKIA.HE?range=1d&interval=1d",
+    "healthcheckPath": "/health",
     "restartPolicyType": "ON_FAILURE"
   }
 }

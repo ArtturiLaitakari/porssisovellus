@@ -260,6 +260,11 @@ app.get('/api/fundamentals/:symbol', async (req, res) => {
   }
 })
 
+// Healthcheck
+app.get('/health', (_req, res) => {
+  res.json({ status: 'ok' })
+})
+
 // Tuotannossa: palvele React-buildi (/dist) ja SPA-fallback
 if (process.env.NODE_ENV === 'production') {
   const distPath = path.join(process.cwd(), 'dist')
