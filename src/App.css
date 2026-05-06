@@ -69,8 +69,15 @@
 }
 
 @keyframes skeleton-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.4;
+  }
 }
 
 .stock-symbol {
@@ -131,7 +138,7 @@
 .button {
   margin-top: 20px;
   margin-right: 12px;
-  padding: 10px 20px;
+  padding: 3px 12px;
   background: #FF6600;
   color: #fff;
   border: none;
@@ -143,7 +150,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 42px;
+  min-height: 30px;
   line-height: 1;
   box-sizing: border-box;
   text-decoration: none;
@@ -281,16 +288,27 @@
 /* ── Financial metrics ───────────────────────────────── */
 .stock-card__layout {
   display: flex;
-  gap: 32px;
   align-items: flex-start;
+  justify-content: flex-start;
 }
 
 .stock-card__main {
   flex: 1;
   min-width: 0;
+  max-width: calc(100% - 460px);
+  /* Tilaa kahdelle sarakkeelle */
 }
 
 .stock-card__metrics {
+  flex-shrink: 0;
+  min-width: 180px;
+  border-left: 1px solid #E5E7EB;
+  padding-left: 32px;
+  margin-right: 32px;
+  /* Vähennä marginaalia */
+}
+
+.stock-card__performance {
   flex-shrink: 0;
   min-width: 180px;
   border-left: 1px solid #E5E7EB;
@@ -325,10 +343,30 @@
   color: #1A1A1A;
 }
 
-.metric__value--green  { background: #D1FAE5; color: #065F46; border-radius: 4px; padding: 1px 5px; }
-.metric__value--yellow { background: #FEF9C3; color: #713F12; border-radius: 4px; padding: 1px 5px; }
-.metric__value--orange { background: #FFEDD5; color: #9A3412; border-radius: 4px; padding: 1px 5px; }
-.metric__value--red    { background: #FEE2E2; color: #991B1B; border-radius: 4px; padding: 1px 5px; }
+.metric__value--green {
+  background: #D1FAE5;
+  color: #065F46;
+  border-radius: 4px;
+  padding: 1px 5px;
+}
 
+.metric__value--yellow {
+  background: #FEF9C3;
+  color: #713F12;
+  border-radius: 4px;
+  padding: 1px 5px;
+}
 
+.metric__value--orange {
+  background: #FFEDD5;
+  color: #9A3412;
+  border-radius: 4px;
+  padding: 1px 5px;
+}
 
+.metric__value--red {
+  background: #FEE2E2;
+  color: #991B1B;
+  border-radius: 4px;
+  padding: 1px 5px;
+}

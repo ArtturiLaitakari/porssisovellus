@@ -49,6 +49,46 @@ function deColor(v: string | null | undefined): string {
   return 'metric__value--red'
 }
 
+// Osinkotuotto: korkeampi = parempi
+function dividendYieldColor(v: number | null | undefined): string {
+  if (v === null || v === undefined) return ''
+  const percent = v * 100
+  if (percent >= 3) return 'metric__value--green'
+  if (percent >= 2) return 'metric__value--yellow'
+  if (percent >= 1) return 'metric__value--orange'
+  return 'metric__value--red'
+}
+
+// Bruttokate: korkeampi = parempi
+function grossMarginColor(v: number | null | undefined): string {
+  if (v === null || v === undefined) return ''
+  const percent = v * 100
+  if (percent >= 25) return 'metric__value--green'
+  if (percent >= 15) return 'metric__value--yellow'
+  if (percent >= 10) return 'metric__value--orange'
+  return 'metric__value--red'
+}
+
+// Liikevoittomarginaali: korkeampi = parempi
+function operatingMarginColor(v: number | null | undefined): string {
+  if (v === null || v === undefined) return ''
+  const percent = v * 100
+  if (percent >= 15) return 'metric__value--green'
+  if (percent >= 8) return 'metric__value--yellow'
+  if (percent >= 3) return 'metric__value--orange'
+  return 'metric__value--red'
+}
+
+// ROE: optimaalinen alue 10-20%
+function roeColor(v: number | null | undefined): string {
+  if (v === null || v === undefined) return ''
+  const percent = v * 100
+  if (percent >= 10 && percent <= 20) return 'metric__value--green'
+  if ((percent >= 5 && percent < 10) || (percent > 20 && percent <= 25)) return 'metric__value--yellow'
+  if ((percent >= 2 && percent < 5) || (percent > 25 && percent <= 30)) return 'metric__value--orange'
+  return 'metric__value--red'
+}
+
 function getDividendInfo(exDividendDate: number | null, dividendDate: number | null): { label: string; value: string } | null {
   const formatDate = (ts: number | null) => ts ? new Date(ts).toLocaleDateString('fi-FI', { day: 'numeric', month: 'numeric', year: 'numeric' }) : null
   
@@ -249,7 +289,7 @@ function App() {
                     {isCurrentFavorite ? '★' : '☆'}{' '}
                     {isCurrentFavorite ? 'Suosikki' : 'Lisää suosikiksi'}
                   </button>
-                  <a className="button" href={nordnetUrl(selectedSymbol, fundamentals?.name)} target="_blank" rel="noopener noreferrer">Kauppaan →</a>
+                  <a className="button" href={nordnetUrl(selectedSymbol, fundamentals?.name)} target="_blank" rel="noopener noreferrer">Nordnet</a>
                 </>
               ) : null}
             </div>
@@ -295,9 +335,42 @@ function App() {
                   className="button button--small button--overview"
                   onClick={() => setShowOverview(true)}
                 >
-                  Overview
+                  Tiedot
                 </button>
               )}
+            </div>
+
+            {/* Far Right: performance metrics */}
+            <div className="stock-card__performance">
+              <div className="app-card__label">
+                Kannattavuus
+              </div>
+              <div className="financial-metrics">
+                <div className="metric">
+                  <div className="metric__label">Osinkotuotto</div>
+                  <div className={`metric__value ${dividendYieldColor(fundamentals?.dividendYield)}`}>
+                    {loadingFundamentals ? '…' : fundamentals?.dividendYield ? `${(fundamentals.dividendYield * 100).toFixed(1)}%` : '--'}
+                  </div>
+                </div>
+                <div className="metric">
+                  <div className="metric__label">Bruttokate</div>
+                  <div className={`metric__value ${grossMarginColor(fundamentals?.grossMargin)}`}>
+                    {loadingFundamentals ? '…' : fundamentals?.grossMargin ? `${(fundamentals.grossMargin * 100).toFixed(1)}%` : '--'}
+                  </div>
+                </div>
+                <div className="metric">
+                  <div className="metric__label">Liikevoitto-%</div>
+                  <div className={`metric__value ${operatingMarginColor(fundamentals?.operatingMargin)}`}>
+                    {loadingFundamentals ? '…' : fundamentals?.operatingMargin ? `${(fundamentals.operatingMargin * 100).toFixed(1)}%` : '--'}
+                  </div>
+                </div>
+                <div className="metric">
+                  <div className="metric__label">ROE</div>
+                  <div className={`metric__value ${roeColor(fundamentals?.returnOnEquity)}`}>
+                    {loadingFundamentals ? '…' : fundamentals?.returnOnEquity ? `${(fundamentals.returnOnEquity * 100).toFixed(1)}%` : '--'}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
